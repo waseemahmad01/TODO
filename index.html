@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        table {
+            border-spacing: 0;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            }
+
+        th, td {
+            text-align: left;
+            padding: 16px;
+            }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2
+            }
+        .left{
+            text-align: left;
+            font-size: 2rem;
+            font-weight: bolder;
+        }
+        input[type=button]{
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>TODO LIST</h1>
+    <form action="">
+    <label for="input">Add Task:</label>
+    <input type="text" name="" id="input" placeholder="Enter your Task..."><span id="taskSpan"></span><br>
+    <label for="date">Add Date:</label>
+    <input type="date" name="" id="date" style="margin-top: 10px;"><span id="dateSpan"></span>
+    <input type="button" value="Add" onclick="addItem()"><br>
+    <label for="myInput">Search : </label>
+    <input type="text" id="myInput" onkeyup="search()" placeholder="Search for names.." title="Type in a name" style="margin-top: 10px; margin-left: 13px;"><br>
+    <input type="button" value="Clear Data" style="margin-top: 10px;" onclick="clearData()">
+    </form>
+    <table id="taskTable">
+        <caption class="left">TODO LIST DATA</caption>
+        <tr id="row0">
+            <td><a href="#" onclick="sortTask(0)">Task</a></td>
+            <td><a href="#" onclick="sortDate(1)">DueDate</a></td>
+            <td><a href="#" onclick="sortTask(2)">Status</a></td>
+            <td><a href="#">Edit</a></td>
+            <td><a href="#">Remove</a></td>
+        </tr>
+    </table>
+    <table id="statusTable">
+        <caption class="left">STATS</caption>
+        <tr>
+            <td>Task Added</td>
+            <td id="taskAdded">0</td>
+        </tr>
+        <tr>
+            <td>Task Completed</td>
+            <td id="taskCompleted">0</td>
+        </tr>
+        <tr>
+            <td>Task Pending</td>
+            <td id="taskPending">0</td>
+        </tr>
+    </table>
+
+    <script>
+         var items=[];
+         var i;
+         var taskAdded = 0;
+         var taskComp = 0;
+         var da=0;
+         var mon;
+        let array = localStorage.getItem("items");
+        if(array==null)
+        {
+             items = [];
+        }
+        else{
+             items = JSON.parse(array);
+        }
+        showData();
+    function addItem(){
+
+        let input = document.getElementById('input').value;
+        let date  = document.getElementById('date').value;
+        let newDate = new Date(date);
+        let months = ["Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"];
+        let day = newDate.getUTCDate();
+        let month = newDate.getUTCMonth();
+        let year = newDate.getUTCFullYear();
+        let dueDate = day + ' '+months[month]+ ' '+year;
+       let task = {
+           Task: input,
+           Date: dueDate,
+           Compl: false,
+       };
+       items.push(task);
+       localStorage.setItem("items" , JSON.stringify(items));
+       location.reload();
+    }
+    function showData(){
+       let table = document.getElementById('taskTable');
+        for( i= 0 ; i<items.length ; i++)
+        {
+            if(items[i].Compl==false){
+            let row = table.insertRow();
+            let cell1 = row.insertCell(0);
+            let cell2 = row.insertCell(1);
+            let cell3 = row.insertCell(2);
+            let cell4 = row.insertCell(3);
+            let cell5 = row.insertCell(4);
+            row.cells[0].innerHTML = items[i].Task;
+            row.cells[1].innerHTML = items[i].Date;
+            row.cells[2].innerHTML ='<input type="button" value="Pending" style="background-color:red;color:white;" id="pend'+i+'" onclick="comp('+this.i+')">';
+            row.cells[3].innerHTML ='<input type="button" value="Edit" id="edit'+i+'" onclick="edit('+this.i+')">';
+            row.cells[4].innerHTML ='<input type="button" value="Remove" id="remo'+i+'" onclick="remove('+this.i+')">';
+            taskAdded +=1;
+            }
+            else{
+                let row = table.insertRow();
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                let cell3 = row.insertCell(2);
+                let cell4 = row.insertCell(3);
+                let cell5 = row.insertCell(4);
+                row.cells[0].innerHTML = items[i].Task;
+                row.cells[1].innerHTML = items[i].Date;
+                row.cells[2].innerHTML ='<input type="button" value="Complete" style="background-color:green ; color:white;" id="comp'+i+'"  disabled>';
+                row.cells[3].innerHTML ='<input type="button" value="Edit" id="edit'+i+'"  disabled>';
+                row.cells[4].innerHTML ='<input type="button" value="Remove" id="remo'+i+'"  disabled>';
+                taskAdded+=1;
+                taskComp+=1;
+            }
+        }
+            document.getElementById('taskAdded').innerHTML=taskAdded;
+            document.getElementById('taskCompleted').innerHTML=taskComp;
+            document.getElementById('taskPending').innerHTML=taskAdded-taskComp;
+    }
+
+
+    function remove(id){
+        items.splice(id , 1);
+        localStorage.clear();
+        localStorage.setItem("items" , JSON.stringify(items));
+        location.reload();
+    }
+
+    function comp(id){
+        if(confirm("If you complete this task then you are no longer able to edit or delete it.")){
+        let obj = items[id];
+        obj.Compl = true;
+        items[id]=obj;
+        localStorage.clear();
+        localStorage.setItem("items" , JSON.stringify(items));
+        location.reload();
+        }
+    }
+
+    function edit(id){
+        let replaceBy = prompt("Enter new Task.......");
+        items[id].Task = replaceBy;
+        localStorage.clear();
+        localStorage.setItem("items" , JSON.stringify(items));
+        location.reload();
+    }
+
+    function clearData(){
+        if(confirm("Do you want to clear all list?")){
+        localStorage.clear();
+        location.reload();
+        }
+    }
+
+    function sortTask(id){
+        var table, r, switching, i, x, y, shouldSwitch, dir, sc = 0;
+    table = document.getElementById("taskTable");
+    switching = true;
+    dir = "ascending";
+    while (switching) {
+      switching = false;
+      r = table.rows;
+      for (i = 1; i < (r.length - 1); i++) {
+        shouldSwitch = false;
+        x = r[i].getElementsByTagName("TD")[id];
+        y = r[i + 1].getElementsByTagName("TD")[id];
+        if (dir == "ascending") {
+          if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir == "descending") {
+          if (x.innerHTML < y.innerHTML) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        r[i].parentNode.insertBefore(r[i + 1], r[i]);
+        switching = true;
+        sc ++;
+      } else {
+        if (sc == 0 && dir == "ascending") {
+          dir = "descending";
+          switching = true;
+        }
+      }
+    }
+    }
+    function sortDate(id){
+        var table, r, switching, i, x,x1, y,y11, shouldSwitch, dir, sc = 0;
+    table = document.getElementById("taskTable");
+    switching = true;
+    dir = "ascending";
+    while (switching) {
+      switching = false;
+      r = table.rows;
+      for (i = 1; i < (r.length - 1); i++) {
+        shouldSwitch = false;
+        x = r[i].getElementsByTagName("TD")[id];
+        x1=x.innerHTML;
+        let time1= new Date(x1);
+        let day1= time1.getDate();
+        let y1= time1.getFullYear(); 
+        let sum1 = String(day1+y1);
+        y = r[i+1].getElementsByTagName("TD")[id];
+        y11=y.innerHTML;
+        let time2= new Date(y11);
+        let day2= time2.getDate();
+        let y2= time2.getFullYear();
+        let sum2 = String(day2+y2);
+        if (dir == "ascending") {
+          if (sum1>sum2) {
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir == "descending") {
+          if (sum1<sum2) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        r[i].parentNode.insertBefore(r[i + 1], r[i]);
+        switching = true;
+        sc ++;
+      } else {
+        if (sc == 0 && dir == "ascending") {
+          dir = "descending";
+          switching = true;
+        }
+      }
+    }
+    }
+
+    function search() {
+      var input, filter, table, tr, td, i;
+      input = document.getElementById("myInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("taskTable");
+      tr = table.getElementsByTagName("tr");
+      for (i = 1; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[0];
+        td1 = tr[i].getElementsByTagName("td")[1];
+        if (td+td1) {
+          if ((td.innerHTML.toUpperCase().indexOf(filter)+td1.innerHTML.toUpperCase().indexOf(filter)) > -2) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }       
+      }
+    }
+    </script>
+</body>
+</html>
